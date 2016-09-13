@@ -106,6 +106,7 @@ class Convention(models.Model):
     def clean(self):
         if self.date_end <= self.date_start:
             raise ValidationError("La date de fin doit être après la date de début")
+
         this_student_other_conventions = Convention.objects.filter(student=self.student)
         for c in [other_c for other_c in this_student_other_conventions if other_c.id != self.id ]:
             if (self.date_start < c.date_start < self.date_end) or (self.date_start < c.date_end < self.date_end):
@@ -134,12 +135,16 @@ class Periode(models.Model):
     def clean(self):
         period_date_start = date(self.time_start.year, self.time_start.month, self.time_start.day)
         period_date_end = date(self.time_end.year, self.time_end.month, self.time_end.day)
+
         if (period_date_start < self.convention.date_start) or (period_date_start > self.convention.date_end):
             raise ValidationError("La plage débute hors de la convention")
+
         if (period_date_end > self.convention.date_end):
             raise ValidationError("La plage se termine après la fin de la convention")
+
         if self.time_end <= self.time_start:
             raise ValidationError("La fin de la plage doit être après le début")
+
         this_convention_other_periods = Periode.objects.filter(convention=self.convention)
         for p in [other_p for other_p in this_convention_other_periods if other_p.id != self.id]:
             if (self.time_start < p.time_start <self.time_end) or (self.time_start < p.time_end <self.time_end):
