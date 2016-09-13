@@ -94,8 +94,8 @@ class Tuteur(models.Model):
 
 class Convention(models.Model):
     tutor = models.ForeignKey(Tuteur, verbose_name="Tuteur")
-    teacher = models.ForeignKey(Professeur, verbose_name="Tuteur")
-    student = models.ForeignKey(Eleve, verbose_name="Tuteur")
+    teacher = models.ForeignKey(Professeur, verbose_name="Professeur")
+    student = models.ForeignKey(Eleve, verbose_name="Stagiaire")
     stage = models.CharField(max_length=50, choices = CHOIX_STAGE)
     date_start = models.DateField("Date de début")
     date_end = models.DateField("Date de fin")
@@ -105,8 +105,8 @@ class Convention(models.Model):
         if self.date_end <= self.date_start:
             raise ValidationError("La date de fin doit être après la date de début")
         this_student_other_conventions = Convention.objects.filter(student=self.student)
-        for c in this_student_other_conventions:
-            if (c.date_start < self.date_start < c.date_end) or (c.date_start < self.date_end < c.date_end):
+        for c in [other_c for other_c in this_student_other_conventions if other_c.id != self.id ]:
+            if (self.date_start < c.date_start < self.date_end) or (self.date_start < c.date_end < self.date_end):
                 raise ValidationError("Une autre convention entre en conflit sur cette période")
 
 
@@ -115,16 +115,16 @@ class Convention(models.Model):
         verbose_name_plural = "Conventions"
 
     def __str__(self):
-        return "%s - %s %s - %s:%s" % (
+        return "%s - %s %s - du %s au %s" % (
             self.stage,
             self.student.last_name,
             self.student.first_name,
-            self.date_start.year,
-            self.date_end.year,
+            self.date_start.strftime("%d/%m/%Y"),
+            self.date_end.strftime("%d/%m/%Y"),
             )
 
 
-class Period(models.Model):
+class Periode(models.Model):
     convention = models.ForeignKey(Convention, on_delete=models.CASCADE)
     time_start = models.DateTimeField("Heure de début")
     time_end = models.DateTimeField("Heure de fin")
@@ -132,9 +132,9 @@ class Period(models.Model):
     def clean(self):
         if self.time_end <= self.time_start:
             raise ValidationError("La fin de la plage doit être après le début")
-        this_convention_other_periods = Period.objects.filter(convention=self.convention)
-        for p in this_convention_other_periods:
-            if (p.time_start < self.time_start < p.time_end) or (p.time_start < self.time_end < p.time_end):
+        this_convention_other_periods = Periode.objects.filter(convention=self.convention)
+        for p in [other_p for other_pd in this_convention_other_periods if other_p.id != self.id]:
+            if (self.time_start < p.time_start <self.time_end) or (self.time_start < p.time_end <self.time_end):
                 raise ValidationError("Les plages horaires ne peuvent se chevaucher")
 
 
@@ -146,8 +146,6 @@ class Period(models.Model):
         return "%s -> %s" % (self.time_start.strftime("%d/%m/%Y %H:%M"), self.time_end.strftime("%d/%m/%Y %H:%M"))
 
 @receiver(pre_save, sender=Convention)
-@receiver(pre_save, sender=Period)
+@receiver(pre_save, sender=Periode)
 def pre_save_handler(sender, instance, *args, **kwargs):
     instance.clean()
-
-    

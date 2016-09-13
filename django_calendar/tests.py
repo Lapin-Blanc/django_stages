@@ -6,7 +6,7 @@ from django.contrib.auth.models import User, Group
 from django.contrib.auth import authenticate
 from django.core.exceptions import ObjectDoesNotExist, ValidationError
 from django.db.utils import IntegrityError
-from .models import Eleve, Professeur, Tuteur, Convention, Period
+from .models import Eleve, Professeur, Tuteur, Convention, Periode
 
 
 tz = timezone("Europe/Brussels")
@@ -98,7 +98,7 @@ class ConventionTest(TestCase):
             periods = 200
             )
         c.save()
-        self.assertEqual(str(c), "Stage d'observation - Toune Fabien - 2016:2016")
+        self.assertEqual(str(c), "Stage d'observation - Toune Fabien - du 16/06/2016 au 30/10/2016")
 
     def test_convention_ends_after_start(self):
         t = Tuteur(
@@ -122,6 +122,7 @@ class ConventionTest(TestCase):
         self.assertRaisesMessage(ValidationError, "La date de fin doit être après la date de début", c.save)
 
     def test_conventions_cant_overlap_for_one_student(self):
+        # TODO améliorer le test pour tenir compte des différents stages...
         t = Tuteur(
             first_name = "Bob",
             last_name = "Morane",
@@ -156,7 +157,7 @@ class ConventionTest(TestCase):
         self.assertRaisesMessage(ValidationError, "Une autre convention entre en conflit sur cette période", c2.save)
         c2.date_end = date(2016, 1, 1)
         c2.save()
-        self.assertEqual(str(c2), "Stage d'observation - Toune Fabien - 2015:2016")
+        self.assertEqual(str(c2), "Stage d'observation - Toune Fabien - du 30/06/2015 au 01/01/2016")
 
 class HoraireTest(TestCase):
     fixtures = ["base_profs_eleves.json"]
@@ -180,7 +181,7 @@ class HoraireTest(TestCase):
             periods = 200
             )
         c.save()
-        p = Period(
+        p = Periode(
             convention = c,
             time_start = datetime(2016, 9, 13, 9, 0, 0, tzinfo=tz),
             time_end = datetime(2016, 9, 13, 16, 30, 0, tzinfo=tz),
@@ -208,7 +209,7 @@ class HoraireTest(TestCase):
             periods = 200
             )
         c.save()
-        p = Period(
+        p = Periode(
             convention = c,
             time_start = datetime(2016, 9, 13, 17, 0, 0, tzinfo=tz),
             time_end = datetime(2016, 9, 13, 16, 30, 0, tzinfo=tz),
@@ -235,13 +236,13 @@ class HoraireTest(TestCase):
             periods = 200
             )
         c.save()
-        p1 = Period(
+        p1 = Periode(
             convention = c,
             time_start = datetime(2016, 9, 13, 9, 0, 0, tzinfo=tz),
             time_end = datetime(2016, 9, 13, 16, 30, 0, tzinfo=tz),
             )
         p1.save()
-        p2 = Period(
+        p2 = Periode(
             convention = c,
             time_start = datetime(2016, 9, 13, 16, 0, 0, tzinfo=tz),
             time_end = datetime(2016, 9, 13, 17, 0, 0, tzinfo=tz),
