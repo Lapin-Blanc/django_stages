@@ -1,3 +1,5 @@
+from datetime import date
+
 from django.db import models
 from django.contrib.auth.models import User, Group
 from django.dispatch import receiver
@@ -130,6 +132,12 @@ class Periode(models.Model):
     time_end = models.DateTimeField("Heure de fin")
 
     def clean(self):
+        period_date_start = date(self.time_start.year, self.time_start.month, self.time_start.day)
+        period_date_end = date(self.time_end.year, self.time_end.month, self.time_end.day)
+        if (period_date_start < self.convention.date_start) or (period_date_start > self.convention.date_end):
+            raise ValidationError("La plage débute hors de la convention")
+        if (period_date_end > self.convention.date_end):
+            raise ValidationError("La plage se termine après la fin de la convention")
         if self.time_end <= self.time_start:
             raise ValidationError("La fin de la plage doit être après le début")
         this_convention_other_periods = Periode.objects.filter(convention=self.convention)
