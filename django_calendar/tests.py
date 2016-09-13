@@ -252,3 +252,12 @@ class HoraireTest(TestCase):
         self.assertRaisesMessage(ValidationError, "Les plages horaires ne peuvent se chevaucher", p2.save)
         p2.time_end = datetime(2016, 9, 13, 9, 0, 0, tzinfo=tz)
         p2.save()
+
+#from django.test import LiveServerTestCase
+from django.contrib.staticfiles.testing import StaticLiveServerTestCase
+from django.contrib.auth.models import User
+
+from selenium import webdriver
+
+class AdminTestCase(StaticLiveServerTestCase):
+    pass
