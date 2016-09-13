@@ -6,19 +6,14 @@ from selenium import webdriver
 
 class AdminTestCase(StaticLiveServerTestCase):
     def setUp(self):
-        # setUp is where you instantiate the selenium webdriver and loads the browser.
-        User.objects.create_superuser(
-            username='admin',
-            password='admin',
-            email='admin@example.com'
-        )
+    # setUp is where you instantiate the selenium webdriver and loads the browser.
 
         self.selenium = webdriver.Chrome()
         self.selenium.maximize_window()
         super(AdminTestCase, self).setUp()
 
     def tearDown(self):
-        # Call tearDown to close the web browser
+    # Call tearDown to close the web browser
         self.selenium.quit()
         super(AdminTestCase, self).tearDown()
 
