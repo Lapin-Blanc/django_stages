@@ -176,7 +176,7 @@ class HoraireTest(TestCase):
             teacher = Professeur.objects.get(username="karine.demine"),
             student = Eleve.objects.get(username="fabien.toune"),
             stage = "Stage d'observation",
-            date_start = date(2016, 10, 15),
+            date_start = date(2016, 1, 1),
             date_end = date(2016, 12, 31),
             periods = 200
             )
@@ -204,7 +204,7 @@ class HoraireTest(TestCase):
             teacher = Professeur.objects.get(username="karine.demine"),
             student = Eleve.objects.get(username="fabien.toune"),
             stage = "Stage d'observation",
-            date_start = date(2016, 10, 15),
+            date_start = date(2016, 1, 1),
             date_end = date(2016, 12, 31),
             periods = 200
             )
@@ -231,7 +231,7 @@ class HoraireTest(TestCase):
             teacher = Professeur.objects.get(username="karine.demine"),
             student = Eleve.objects.get(username="fabien.toune"),
             stage = "Stage d'observation",
-            date_start = date(2016, 10, 15),
+            date_start = date(2016, 1, 1),
             date_end = date(2016, 12, 31),
             periods = 200
             )
