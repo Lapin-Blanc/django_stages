@@ -133,7 +133,7 @@ class Periode(models.Model):
         if self.time_end <= self.time_start:
             raise ValidationError("La fin de la plage doit être après le début")
         this_convention_other_periods = Periode.objects.filter(convention=self.convention)
-        for p in [other_p for other_pd in this_convention_other_periods if other_p.id != self.id]:
+        for p in [other_p for other_p in this_convention_other_periods if other_p.id != self.id]:
             if (self.time_start < p.time_start <self.time_end) or (self.time_start < p.time_end <self.time_end):
                 raise ValidationError("Les plages horaires ne peuvent se chevaucher")
 
