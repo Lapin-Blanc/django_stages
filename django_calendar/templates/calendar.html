@@ -1,10 +1,10 @@
 <!doctype html>
 <html lang="fr">
 <head>
-  
+
     <!-- <meta charset="utf-8"> -->
     <title>Essais calendrier</title>
-  
+
     <link rel='stylesheet' href='/static/css/fullcalendar.min.css' />
     <script src='/static/js/jquery-3.1.0.min.js'></script>
     <script src='/static/js/moment.min.js'></script>
@@ -12,7 +12,7 @@
     <script src='/static/js/lang/fr.js'></script>
     <script type='text/javascript'>
 
-    function supprimer(event_id) {            
+    function supprimer(event_id) {
         $.ajax({
             url: '/calendar/delete_event',
             data: 'event_id='+event_id,
@@ -22,7 +22,7 @@
             success: function(response) {
                 $('#calendar').fullCalendar('removeEvents', event_id);
             },
-        });       
+        });
     }
 
     $(document).ready(function() {
@@ -40,15 +40,15 @@
             defaultView: 'agendaWeek',
             allDaySlot: false,
             slotLabelFormat: 'HH:mm',
-            eventColor: 'IndianRed',            
+            eventColor: 'IndianRed',
             selectable: true,
             selectHelper: true,
-            editable: true,            
+            editable: true,
             // DATAS
             events: {
-                url: '/calendar/get_events/',
+                url: 'get_events/',
             },
-            
+
             select: function(start, end) {
                 $.ajax({
                     url: '/calendar/create_event',
@@ -66,9 +66,9 @@
                     },
                 });
                 $('#calendar').fullCalendar('unselect');
-            },            
+            },
             eventRender: function( event, element, view ) {
-                element.find('.fc-time').append('<img onclick="supprimer('+event.id+')" src="/static/img/trashbin.png" style="float:right"></img>'); 
+                element.find('.fc-time').append('<img onclick="supprimer('+event.id+')" src="/static/img/trashbin.png" style="float:right"></img>');
             },
             eventDrop: function(event, delta, revertFunc) {
                 $.ajax({
@@ -104,7 +104,7 @@
 <body>
   <!-- Le reste du contenu -->
   <h2 id="titre">Encodage de l'horaire de stage</h2>
-  <div style="float:right"><a href="/accounts/logout/">Déconnexion</a></div>
+  <div style="float:right"><a href="calendar_logout/">Déconnexion</a></div>
   <div id="calendar" style="width:850px"></div>
 </body>
 </html>

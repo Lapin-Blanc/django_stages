@@ -19,7 +19,7 @@ class Eleve(models.Model):
     last_name = models.CharField("nom", max_length=20, blank=True, default="")
     email = models.EmailField(blank=True, default="")
     phone = models.CharField("téléphone", max_length=20, blank=True, default="")
-    user = models.OneToOneField(User, related_name="eleve_user", blank=True, on_delete=models.CASCADE)
+    user = models.OneToOneField(User, related_name="eleve", blank=True, on_delete=models.CASCADE)
 
     class Meta:
         verbose_name = "Éleve"
@@ -36,7 +36,7 @@ class Professeur(models.Model):
     last_name = models.CharField("nom", max_length=20, blank=True, default="")
     email = models.EmailField(blank=True, default="")
     phone = models.CharField("téléphone", max_length=20, blank=True, default="")
-    user = models.OneToOneField(User, related_name="professeur_user", blank=True, on_delete=models.CASCADE)
+    user = models.OneToOneField(User, related_name="professeur", blank=True, on_delete=models.CASCADE)
 
     class Meta:
         verbose_name = "Professeur"
@@ -129,12 +129,12 @@ class Convention(models.Model):
 
 class Periode(models.Model):
     convention = models.ForeignKey(Convention, on_delete=models.CASCADE)
-    time_start = models.DateTimeField("Heure de début")
-    time_end = models.DateTimeField("Heure de fin")
+    start = models.DateTimeField("Heure de début")
+    end = models.DateTimeField("Heure de fin")
 
     def clean(self):
-        period_date_start = date(self.time_start.year, self.time_start.month, self.time_start.day)
-        period_date_end = date(self.time_end.year, self.time_end.month, self.time_end.day)
+        period_date_start = date(self.start.year, self.time_start.month, self.time_start.day)
+        period_date_end = date(self.end.year, self.time_end.month, self.time_end.day)
 
         if (period_date_start < self.convention.date_start) or (period_date_start > self.convention.date_end):
             raise ValidationError("La plage débute hors de la convention")
