@@ -49,6 +49,7 @@ class Professeur(models.Model):
 @receiver(pre_save, sender=Eleve)
 @receiver(pre_save, sender=Professeur)
 def pre_save_user(sender, instance, *args, **kwargs):
+    # TODO appartenance exclusive professeurs/élèves
     if not instance.pk:
         u = User(
             username=instance.username,
@@ -133,8 +134,8 @@ class Periode(models.Model):
     end = models.DateTimeField("Heure de fin")
 
     def clean(self):
-        period_date_start = date(self.start.year, self.time_start.month, self.time_start.day)
-        period_date_end = date(self.end.year, self.time_end.month, self.time_end.day)
+        period_date_start = date(self.start.year, self.start.month, self.start.day)
+        period_date_end = date(self.end.year, self.end.month, self.end.day)
 
         if (period_date_start < self.convention.date_start) or (period_date_start > self.convention.date_end):
             raise ValidationError("La plage débute hors de la convention")
@@ -142,21 +143,22 @@ class Periode(models.Model):
         if (period_date_end > self.convention.date_end):
             raise ValidationError("La plage se termine après la fin de la convention")
 
-        if self.time_end <= self.time_start:
+        if self.end <= self.start:
             raise ValidationError("La fin de la plage doit être après le début")
 
         this_convention_other_periods = Periode.objects.filter(convention=self.convention)
         for p in [other_p for other_p in this_convention_other_periods if other_p.id != self.id]:
-            if (self.time_start < p.time_start <self.time_end) or (self.time_start < p.time_end <self.time_end):
+            if (self.start < p.start <self.end) or (self.start < p.end <self.end):
                 raise ValidationError("Les plages horaires ne peuvent se chevaucher")
 
 
     class Meta:
         verbose_name = "Plage horaire"
         verbose_name_plural = "Plages horaires"
+        ordering = ("start",)
 
     def __str__(self):
-        return "%s -> %s" % (self.time_start.strftime("%d/%m/%Y %H:%M"), self.time_end.strftime("%d/%m/%Y %H:%M"))
+        return "%s -> %s" % (self.start.strftime("%d/%m/%Y %H:%M"), self.end.strftime("%d/%m/%Y %H:%M"))
 
 @receiver(pre_save, sender=Convention)
 @receiver(pre_save, sender=Periode)

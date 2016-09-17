@@ -14,7 +14,7 @@
 
     function supprimer(event_id) {
         $.ajax({
-            url: '/calendar/delete_event',
+            url: 'delete_event/',
             data: 'event_id='+event_id,
             type: 'GET',
             dataType: 'json',
@@ -51,7 +51,7 @@
 
             select: function(start, end) {
                 $.ajax({
-                    url: '/calendar/create_event',
+                    url: 'create_event/',
                     data: 'start='+start+'&end='+end,
                     type: 'GET',
                     dataType: 'json',
@@ -72,7 +72,7 @@
             },
             eventDrop: function(event, delta, revertFunc) {
                 $.ajax({
-                    url: '/calendar/move_event',
+                    url: 'move_event/',
                     data: 'event_id=' + event.id + '&delta=' + delta,
                     type: 'GET',
                     dataType: 'json',
@@ -84,7 +84,7 @@
             },
             eventResize: function(event, delta, revertFunc) {
                 $.ajax({
-                    url: '/calendar/resize_event',
+                    url: 'resize_event/',
                     data: 'event_id=' + event.id + '&delta=' + delta,
                     type: 'GET',
                     dataType: 'json',
