@@ -1,4 +1,5 @@
 from datetime import date
+from datetime import datetime
 
 from django.db import models
 from django.contrib.auth.models import User, Group
@@ -79,30 +80,34 @@ def post_delete_user(sender, instance, *args, **kwargs):
     if instance.user:
         instance.user.delete()
 
-class Tuteur(models.Model):
-    first_name = models.CharField("prénom", max_length=20, default="")
-    last_name = models.CharField("nom", max_length=20, default="")
-    role = models.CharField("fonction", max_length=20, blank=True, default="")
-    institution = models.CharField("institution", max_length=20, blank=True, default="")
-    phone = models.CharField("téléphone", max_length=20, default="")
-    email = models.EmailField(blank=True, default="")
+class Lieu(models.Model):
+    institution = models.CharField("Institution", max_length=50)
+    address = models.CharField("rue et numéro", max_length=200, default="")
+    zipcode = models.CharField("code postal", max_length=5, blank=True, default="")
+    city = models.CharField("localité", max_length=20, blank=True, default="")
+    contact = models.CharField("contact", max_length=50, blank=True, default="")
+    phone = models.CharField("téléphone", max_length=20, blank=True, default="")
 
 
     class Meta:
-        verbose_name = "Tuteur"
-        verbose_name_plural = "Tuteurs"
+        verbose_name = "Lieu de stage"
+        verbose_name_plural = "Lieux de stage"
 
     def __str__(self):
-        return "%s %s" % (self.last_name, self.first_name)
+        return "%s" % (self.institution,)
 
 class Convention(models.Model):
-    tutor = models.ForeignKey(Tuteur, verbose_name="Tuteur")
+    place = models.ForeignKey(Lieu, verbose_name="Lieu")
     teacher = models.ForeignKey(Professeur, verbose_name="Professeur")
     student = models.ForeignKey(Eleve, verbose_name="Stagiaire")
     stage = models.CharField(max_length=50, choices = CHOIX_STAGE)
     date_start = models.DateField("Date de début")
     date_end = models.DateField("Date de fin")
     periods = models.IntegerField("Nombre de périodes")
+
+    def sum_periods(self):
+        return self.periode_set.filter(models.Q(end__lt=datetime.today())).aggregate(sum=models.Sum("duration"))['sum']
+    sum_periods.short_description = "Périodes prestées "
 
     def clean(self):
         if self.date_end <= self.date_start:
@@ -132,6 +137,14 @@ class Periode(models.Model):
     convention = models.ForeignKey(Convention, on_delete=models.CASCADE)
     start = models.DateTimeField("Heure de début")
     end = models.DateTimeField("Heure de fin")
+    date_created = models.DateTimeField("Date de création", auto_now_add=True)
+    date_modified = models.DateTimeField("Date de modification", auto_now=True)
+    duration = models.DecimalField("Durée en périodes", max_digits=8, decimal_places=2, default=0)
+
+    def modified(self):
+        return self.date_created != self.date_modified
+    modified.boolean = True
+    modified.short_description = "A été modifié"
 
     def clean(self):
         period_date_start = date(self.start.year, self.start.month, self.start.day)
@@ -150,6 +163,7 @@ class Periode(models.Model):
         for p in [other_p for other_p in this_convention_other_periods if other_p.id != self.id]:
             if (self.start < p.start <self.end) or (self.start < p.end <self.end):
                 raise ValidationError("Les plages horaires ne peuvent se chevaucher")
+        self.duration = (self.end - self.start).seconds / (50*60)
 
 
     class Meta:

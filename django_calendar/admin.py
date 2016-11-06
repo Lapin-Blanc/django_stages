@@ -1,5 +1,5 @@
 from django.contrib import admin
-from django_calendar.models import Eleve, Professeur, Convention, Tuteur, Periode
+from django_calendar.models import Eleve, Professeur, Convention, Lieu, Periode
 
 # Custom model admin
 class EleveAdmin(admin.ModelAdmin):
@@ -12,27 +12,32 @@ class ProfesseurAdmin(admin.ModelAdmin):
     list_display = ("username", "first_name", "last_name", "email", "phone")
     search_fields = ("first_name", "last_name")
 
-class TuteurAdmin(admin.ModelAdmin):
-    list_display = ("first_name", "last_name", "institution", "role", "phone", "email")
-    search_fields = ("first_name", "last_name")
+class LieuAdmin(admin.ModelAdmin):
+    list_display = ("institution", "address", "zipcode", "city", "contact", "phone")
+    search_fields = ("institution",)
 
 class PeriodeInline(admin.TabularInline):
     model = Periode
-    readonly_fields = ('start', 'end')
+    readonly_fields = ('start', 'end', 'duration', 'date_created', 'date_modified', 'modified')
     extra = 0
     def has_add_permission(self, request):
         return False
     can_delete = False
+
 class ConventionAdmin(admin.ModelAdmin):
-    list_display = ("stage", "student", "teacher", "tutor", "date_start", "date_end", "periods")
+    readonly_fields = ('sum_periods',)
+    fields = ("stage", "student", "teacher", "place", "date_start", "date_end", "periods", "sum_periods")
+    list_display = ("stage", "student", "teacher", "place", "date_start", "date_end", "periods", "sum_periods")
     list_filter = ("stage", "teacher")
     date_hierarchy = ("date_start")
-    inlines = (PeriodeInline,)
+    inlines = [PeriodeInline,]
 
+class PeriodeAdmin(admin.ModelAdmin):
+    list_display = ("start", "end", "duration")
 
 # Register your models here.
 admin.site.register(Eleve, EleveAdmin)
 admin.site.register(Professeur, ProfesseurAdmin)
-admin.site.register(Tuteur, TuteurAdmin)
+admin.site.register(Lieu, LieuAdmin)
 admin.site.register(Convention, ConventionAdmin)
-# admin.site.register(Periode)
+admin.site.register(Periode, PeriodeAdmin)
