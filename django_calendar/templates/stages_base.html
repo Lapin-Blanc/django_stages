@@ -1,0 +1,15 @@
+{% include "base_blocks.html" %}
+<!doctype html>
+<html lang="fr">
+<head>
+
+    <meta charset="utf-8">
+    <title>{% block title %}{% endblock title %}</title>
+    {% block extra_head %}{% endblock extra_head %}
+</head>
+<body>
+{{ profile_block }}
+{% block content %}
+{% endblock content %}
+</body>
+</html>

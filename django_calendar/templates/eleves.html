@@ -1,0 +1,27 @@
+{% extends "horaires.html" %}
+
+{% include "base_blocks.html" %}
+
+{% block title %}{{ block.super }}| Élèves{% endblock title %}
+
+{% block extra_head %}
+  {% if convention %}
+    {{ full_calendar_header }}
+  {% endif %}
+{% endblock extra_head %}
+
+{% block content %}
+  {{ block.super }}
+  <h2>Élèves</h2>
+  {% if convention %}
+    <h3>Convention : {{ convention }}</h3>
+    <div id="calendar" style="width:850px"></div>
+  {% else %}
+    <p>Vous n'avez pas de stage en cours, veuillez remplir le formulaire ci-dessous pour en créer un</p>
+    <form method="POST" action="/horaires/">
+      {% csrf_token %}
+      {{ form }}
+      <input type="submit" value="Enregistrer" />
+    </form>
+  {% endif %}
+{% endblock content %}

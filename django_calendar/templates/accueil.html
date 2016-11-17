@@ -1,0 +1,10 @@
+{% extends "stages_base.html" %}
+
+{% block title %}Gestion des stages{% endblock title %}
+
+{% block content %}
+    <p><a href="/horaires/">Encodage des horaires</a></p>
+    {% if is_teacher %}
+    <p><a href="/admin/">Administration des stages</a></p>
+    {% endif %}
+{% endblock content %}
