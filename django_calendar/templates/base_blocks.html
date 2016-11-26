@@ -15,7 +15,7 @@
 
 function supprimer(event_id) {
     $.ajax({
-        url: '/delete_event/',
+        url: 'delete_event/',
         data: 'event_id='+event_id,
         type: 'GET',
         dataType: 'json',
@@ -47,12 +47,12 @@ $(document).ready(function() {
         editable: true,
         // DATAS
         events: {
-            url: '/get_events/',
+            url: 'get_events/',
         },
 
         select: function(start, end) {
             $.ajax({
-                url: '/create_event/',
+                url: 'create_event/',
                 data: 'start='+start+'&end='+end,
                 type: 'GET',
                 dataType: 'json',
@@ -65,6 +65,9 @@ $(document).ready(function() {
                     };
                     $('#calendar').fullCalendar('renderEvent', eventData, false); // stick? = true
                 },
+                error: function(xhr, text, error) {
+                    alert(xhr.responseJSON.errors[0].detail);
+                    }
             });
             $('#calendar').fullCalendar('unselect');
         },
@@ -73,24 +76,24 @@ $(document).ready(function() {
         },
         eventDrop: function(event, delta, revertFunc) {
             $.ajax({
-                url: '/move_event/',
+                url: 'move_event/',
                 data: 'event_id=' + event.id + '&delta=' + delta,
                 type: 'GET',
                 dataType: 'json',
-                error: function(response) {
-                    alert("Erreur lors du déplacement");
+                error: function(xhr, text, error) {
+                    alert(xhr.responseJSON.errors[0].detail);
                     revertFunc();
                 },
             });
         },
         eventResize: function(event, delta, revertFunc) {
             $.ajax({
-                url: '/resize_event/',
+                url: 'resize_event/',
                 data: 'event_id=' + event.id + '&delta=' + delta,
                 type: 'GET',
                 dataType: 'json',
-                error: function(response) {
-                    alert("Erreur lors du redimensionnement");
+                error: function(xhr, text, error) {
+                    alert(xhr.responseJSON.errors[0].detail);
                     revertFunc();
                 },
             });

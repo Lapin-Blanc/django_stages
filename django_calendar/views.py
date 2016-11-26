@@ -6,6 +6,7 @@ from django.http import HttpResponse, HttpResponseRedirect, JsonResponse
 from django.contrib.auth.decorators import login_required
 from django.contrib.auth.models import Group
 from django.utils import timezone
+from django.core.exceptions import ValidationError
 
 from .models import Eleve, Convention
 from .forms import ConventionForm
@@ -56,6 +57,7 @@ def horaires(request):
 def calendar_home(request):
     return render(request, "horaires.html")
 
+# ajax
 def get_events(request):
     c = manage_ajax_request(request)
     if isinstance(c, JsonResponse):
@@ -66,7 +68,6 @@ def get_events(request):
     return JsonResponse(list(periodes), safe=False)
 
 
-# ajax
 def create_event(request):
     print("CREATE CALLED")
     c = manage_ajax_request(request)
@@ -75,7 +76,21 @@ def create_event(request):
         return c
     start = timezone.make_aware(datetime.fromtimestamp(int(request.GET['start'])//1000))
     end = timezone.make_aware(datetime.fromtimestamp(int(request.GET['end'])//1000))
-    p = c.periode_set.create(start=start, end=end)
+    try:
+        p = c.periode_set.create(start=start, end=end)
+    except ValidationError as e:
+        return JsonResponse(
+            {
+              "errors": [
+                {
+                  "status": "422",
+                  "source": { "pointer": request.path },
+                  "detail": "%s" % e.args[0]
+                },
+              ]
+            },
+        status=400)
+    # Utilisateur OK
     return JsonResponse({"event_id" : p.id}, safe=False)
 
 
@@ -92,10 +107,24 @@ def move_event(request):
     if isinstance(c, JsonResponse):
         # Il y a eu un problème
         return c
-    e = c.periode_set.get(id=request.GET['event_id'])
-    e.start = e.start + timedelta(seconds=int(request.GET['delta'])//1000)
-    e.end = e.end + timedelta(seconds=int(request.GET['delta'])//1000)
-    e.save()
+    evt = c.periode_set.get(id=request.GET['event_id'])
+    evt.start = evt.start + timedelta(seconds=int(request.GET['delta'])//1000)
+    evt.end = evt.end + timedelta(seconds=int(request.GET['delta'])//1000)
+    try:
+        evt.save()
+    except ValidationError as e:
+        return JsonResponse(
+            {
+              "errors": [
+                {
+                  "status": "422",
+                  "source": { "pointer": request.path },
+                  "detail": "%s" % e.args[0]
+                },
+              ]
+            },
+        status=400)
+
     return JsonResponse({"result" : "OK"}, safe=False)
 
 def resize_event(request):
@@ -103,9 +132,22 @@ def resize_event(request):
     if isinstance(c, JsonResponse):
         # Il y a eu un problème
         return c
-    e = c.periode_set.get(id=request.GET['event_id'])
-    e.end = e.end + timedelta(seconds=int(request.GET['delta'])//1000)
-    e.save()
+    evt = c.periode_set.get(id=request.GET['event_id'])
+    evt.end = evt.end + timedelta(seconds=int(request.GET['delta'])//1000)
+    try:
+        evt.save()
+    except ValidationError as e:
+        return JsonResponse(
+            {
+              "errors": [
+                {
+                  "status": "422",
+                  "source": { "pointer": request.path },
+                  "detail": "%s" % e.args[0]
+                },
+              ]
+            },
+        status=400)
     return JsonResponse({"result" : "OK"}, safe=False)
 
 #############################################################
@@ -128,45 +170,8 @@ def manage_ajax_request(request):
     else :
         if Group.objects.get(name="Élèves") in request.user.groups.all():
             # On a affaire à un élève
-            conventions_courantes = request.user.eleve.convention_set.filter(date_start__lte=date.today(), date_end__gte=date.today())
-            if len(conventions_courantes) > 1 :
-                # Trop de convention pour cet élève à cette date (impossible normalement par validation des données)
-                return JsonResponse(
-                    {
-                      "errors": [
-                        {
-                          "status": "400",
-                          "source": { "pointer": request.path },
-                          "detail": "Too many conventions"
-                        },
-                      ]
-                    },
-                status=400)
-            elif len(conventions_courantes) == 0 :
-                # Pas de convention pour cet élève à ce jour
-                return JsonResponse(
-                    {
-                      "errors": [
-                        {
-                          "status": "404",
-                          "source": { "pointer": request.path },
-                          "detail": "No conventions"
-                        },
-                      ]
-                    },
-                status=404)
-            else:
-                # OK, on tient une convention
-                convention_courante = conventions_courantes[0]
-                # TODO filter based on request's params
-                #periodes = convention.periode_set.all().values("id", "start", "end")
-                #return JsonResponse(list(periodes), safe=False)
-                return convention_courante
-
-        #elif Group.objects.get(name="Professeurs") in request.user.groups.all():
-            # On a affaire à un Professeurs
-            #pass
-
+            convention = request.user.eleve.get_convention()
+            return convention
         else:
             # l'utilisateur n'est ni élève, ni professeur
             return JsonResponse(

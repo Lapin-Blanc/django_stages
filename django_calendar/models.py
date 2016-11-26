@@ -163,11 +163,17 @@ class Periode(models.Model):
         period_date_start = date(self.start.year, self.start.month, self.start.day)
         period_date_end = date(self.end.year, self.end.month, self.end.day)
 
-        if (period_date_start < self.convention.date_start) or (period_date_start > self.convention.date_end):
-            raise ValidationError("La plage débute hors de la convention")
+        if (period_date_start < date.today()):
+            raise ValidationError("Vous ne pouvez pas encoder dans le passé !")
 
-        if (period_date_end > self.convention.date_end):
-            raise ValidationError("La plage se termine après la fin de la convention")
+        if (period_date_start < self.convention.date_start):
+            raise ValidationError("La plage débute avant le début la convention")
+
+        if self.convention.date_end:
+            if (period_date_start > self.convention.date_end):
+                raise ValidationError("La plage débute après la find de la convention")
+            if (period_date_end > self.convention.date_end):
+                raise ValidationError("La plage se termine après la fin de la convention")
 
         if self.end <= self.start:
             raise ValidationError("La fin de la plage doit être après le début")
