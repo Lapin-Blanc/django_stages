@@ -25,10 +25,10 @@ class PeriodeInline(admin.TabularInline):
     can_delete = False
 
 class ConventionAdmin(admin.ModelAdmin):
-    readonly_fields = ('sum_periods',)
-    fields = ("stage", "student", "teacher", "place", "date_start", "date_end", "periods", "sum_periods")
-    list_display = ("stage", "student", "teacher", "place", "date_start", "date_end", "periods", "sum_periods")
-    list_filter = ("stage", "teacher")
+    readonly_fields = ('sum_periods', 'asked_periods')
+    fields = ("stage", "type_stage", "student", "teacher", "place", "date_start", "date_end", "sum_periods", 'asked_periods')
+    list_display = ("stage", "type_stage", "student", "teacher", "place", "date_start", "date_end", "sum_periods", 'asked_periods')
+    list_filter = ("stage", "type_stage", "teacher")
     date_hierarchy = ("date_start")
     inlines = [PeriodeInline,]
 

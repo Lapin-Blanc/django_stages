@@ -35,15 +35,19 @@ def horaires(request):
                     place = c_form.cleaned_data["place"]
                     teacher = c_form.cleaned_data["teacher"]
                     stage = c_form.cleaned_data["stage"]
+                    type_stage = c_form.cleaned_data["type_stage"]
                     new_c = Convention(
                         student=eleve,
                         place=place,
                         teacher=teacher,
                         stage=stage,
+                        type_stage=type_stage,
                         date_start=datetime.today(),
                     )
                     new_c.save()
                     return HttpResponseRedirect("/horaires/")
+                else:
+                    return render(request, "eleves.html", { "form" : c_form })
             context["form"] = ConventionForm()
         return render(request, "eleves.html", context=context)
 

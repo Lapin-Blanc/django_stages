@@ -12,15 +12,24 @@
 
 {% block content %}
   {{ block.super }}
-  <h2>Élèves</h2>
+  <h2>{{ eleve }}</h2>
   {% if convention %}
-    <h3>Convention : {{ convention }}</h3>
+    <h3>{{ convention }}</h3>
+    <h4>{{ convention.sum_periods }} périodes prestées</h4>
     <div id="calendar" style="width:850px"></div>
   {% else %}
     <p>Vous n'avez pas de stage en cours, veuillez remplir le formulaire ci-dessous pour en créer un</p>
     <form method="POST" action="/horaires/">
       {% csrf_token %}
-      {{ form }}
+      <table>
+      {% for field in form %}
+          <tr>
+              <td>{{ field.label_tag }}<td>
+              <td>{{ field }}{% for error in field.errors %}&nbsp;{{ error }}{% endfor %}</td>
+          </tr>
+      {% endfor %}
+      </table>
+      <br>
       <input type="submit" value="Enregistrer" />
     </form>
   {% endif %}

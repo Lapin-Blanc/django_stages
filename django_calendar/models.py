@@ -8,10 +8,22 @@ from django.db.models.signals import pre_save, post_delete
 from django.core.exceptions import ValidationError
 
 CHOIX_STAGE = (
-    ("Stage d'observation","Stage d'observation"),
-    ("Stage d'insertion","Stage d'insertion"),
-    ("Stage d'intégration","Stage d'intégration"),
+    ("OBS","Stage d'observation"),
+    ("INS","Stage d'insertion"),
+    ("INT","Stage d'intégration"),
 )
+TYPES_STAGE = {
+    ("MR", "Maison de repos"),
+    ("MRS", "Maison de repos et de soin"),
+    ("DOM", "Domiciles"),
+    ("HOSP", "Hôpital"),
+}
+VENTILATION_STAGE = {
+    "OBS" : {"MR": 65, "MRS" : 65 , "DOM" : 65},
+    "INS" : {"MRS" : 100 , "DOM" : 100},
+    "INT" : {"MRS" : 70 , "DOM" : 70, "HOSP" : 60},
+}
+
 # Create your models here.
 class Eleve(models.Model):
     username = models.CharField("nom d'utilisateur", max_length=20, unique=True)
@@ -27,7 +39,7 @@ class Eleve(models.Model):
         verbose_name_plural = "Éleves"
 
     def __str__(self):
-        return self.username
+        return "{} {}".format(self.first_name, self.last_name)
 
     def get_convention(self):
         c = Convention.objects.filter(student=self.id, date_start__lte=datetime.today())
@@ -110,23 +122,41 @@ class Convention(models.Model):
     place = models.ForeignKey(Lieu, verbose_name="Lieu")
     teacher = models.ForeignKey(Professeur, verbose_name="Professeur")
     student = models.ForeignKey(Eleve, verbose_name="Stagiaire")
-    stage = models.CharField(max_length=50, choices = CHOIX_STAGE)
+    stage = models.CharField(max_length=3, choices = CHOIX_STAGE)
+    type_stage = models.CharField(max_length=4, choices = TYPES_STAGE)
     date_start = models.DateField("Date de début")
     date_end = models.DateField("Date de fin", blank=True, null=True)
-    periods = models.IntegerField("Nombre de périodes", blank=True, null=True)
+    periods = models.IntegerField("Nombre de périodes", blank=True, null=True) # planifiée pour cette convention
+
+    def asked_periods(self):
+        if self.stage and self.type_stage:
+            return VENTILATION_STAGE[self.stage][self.type_stage]
+        else:
+            return None
+    asked_periods.short_description = "Périodes à prester"
 
     def sum_periods(self):
-        return self.periode_set.filter(models.Q(end__lt=datetime.today())).aggregate(sum=models.Sum("duration"))['sum']
+        cnt = self.periode_set.filter(models.Q(end__lt=datetime.today())).aggregate(sum=models.Sum("duration"))['sum']
+        if cnt:
+            return cnt
+        else:
+            return 0
     sum_periods.short_description = "Périodes prestées "
 
-    # def clean(self):
-    #     if self.date_end <= self.date_start:
-    #         raise ValidationError("La date de fin doit être après la date de début")
-    #
-    #     this_student_other_conventions = Convention.objects.filter(student=self.student)
-    #     for c in [other_c for other_c in this_student_other_conventions if other_c.id != self.id ]:
-    #         if (self.date_start < c.date_start < self.date_end) or (self.date_start < c.date_end < self.date_end):
-    #             raise ValidationError("Une autre convention entre en conflit sur cette période")
+    def clean(self):
+        if not self.type_stage in VENTILATION_STAGE[self.stage]:
+            raise ValidationError({'type_stage' : "Le type de stage (%s) choisit ne convient pas pour le %s" % (\
+                                                    dict(TYPES_STAGE)[self.type_stage],
+                                                    dict(CHOIX_STAGE)[self.stage].lower(),
+                                                    )})
+        # print("OK")
+        # if self.date_end <= self.date_start:
+        #     raise ValidationError("La date de fin doit être après la date de début")
+        #
+        # this_student_other_conventions = Convention.objects.filter(student=self.student)
+        # for c in [other_c for other_c in this_student_other_conventions if other_c.id != self.id ]:
+        #     if (self.date_start < c.date_start < self.date_end) or (self.date_start < c.date_end < self.date_end):
+        #         raise ValidationError("Une autre convention entre en conflit sur cette période")
 
 
     class Meta:
@@ -139,10 +169,10 @@ class Convention(models.Model):
             libelle_date = " - du %s au %s" % (d_start, self.date_end.strftime("%d/%m/%Y"),)
         else:
             libelle_date = " à partir du %s" % (d_start,)
-        return "%s - %s %s" % (
-            self.stage,
-            self.student.last_name,
-            self.student.first_name,
+        return "%s " % (
+            dict(CHOIX_STAGE)[self.stage],
+            # self.student.last_name,
+            # self.student.first_name,
             ) + libelle_date
 
 
@@ -193,7 +223,7 @@ class Periode(models.Model):
     def __str__(self):
         return "%s -> %s" % (self.start.strftime("%d/%m/%Y %H:%M"), self.end.strftime("%d/%m/%Y %H:%M"))
 
-@receiver(pre_save, sender=Convention)
+#@receiver(pre_save, sender=Convention)
 @receiver(pre_save, sender=Periode)
 def pre_save_handler(sender, instance, *args, **kwargs):
     instance.clean()
