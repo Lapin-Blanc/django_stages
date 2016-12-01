@@ -187,7 +187,7 @@ class Periode(models.Model):
     duration = models.DecimalField("Durée en périodes", max_digits=8, decimal_places=2, default=0)
 
     def modified(self):
-        return self.date_created != self.date_modified
+        return self.date_created < self.date_modified
     modified.boolean = True
     modified.short_description = "A été modifié"
 
