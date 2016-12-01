@@ -13,15 +13,15 @@ CHOIX_STAGE = (
     ("INT","Stage d'intégration"),
 )
 TYPES_STAGE = {
-    ("MR", "Maison de repos"),
-    ("MRS", "Maison de repos et de soin"),
     ("DOM", "Domiciles"),
-    ("HOSP", "Hôpital"),
+    ("MRS", "Maison de repos et de soin"),
+    ("MRE", "Maison de repos"),
+    ("HOP", "Hôpital"),
 }
 VENTILATION_STAGE = {
-    "OBS" : {"MR": 65, "MRS" : 65 , "DOM" : 65},
+    "OBS" : {"MRE": 65, "MRS" : 65 , "DOM" : 65},
     "INS" : {"MRS" : 100 , "DOM" : 100},
-    "INT" : {"MRS" : 70 , "DOM" : 70, "HOSP" : 60},
+    "INT" : {"MRS" : 70 , "DOM" : 70, "HOP" : 60},
 }
 
 # Create your models here.
@@ -136,7 +136,9 @@ class Convention(models.Model):
     asked_periods.short_description = "Périodes à prester"
 
     def sum_periods(self):
-        cnt = self.periode_set.filter(models.Q(end__lt=datetime.today())).aggregate(sum=models.Sum("duration"))['sum']
+        td = date.today()
+        today_zero = datetime(td.year, td.month, td.day)
+        cnt = self.periode_set.filter(models.Q(end__lt=today_zero)).aggregate(sum=models.Sum("duration"))['sum']
         if cnt:
             return cnt
         else:

@@ -15,7 +15,7 @@
   <h2>{{ eleve }}</h2>
   {% if convention %}
     <h3>{{ convention }}</h3>
-    <h4>{{ convention.sum_periods }} périodes prestées</h4>
+    <h4>{{convention.place }} - {{ convention.sum_periods }} périodes prestées</h4>
     <div id="calendar" style="width:850px"></div>
   {% else %}
     <p>Vous n'avez pas de stage en cours, veuillez remplir le formulaire ci-dessous pour en créer un</p>
