@@ -1,5 +1,6 @@
 from datetime import date
 from datetime import datetime, timedelta
+from django.utils import timezone
 
 from django.db import models
 from django.contrib.auth.models import User, Group
@@ -136,13 +137,14 @@ class Convention(models.Model):
     asked_periods.short_description = "Périodes à prester"
 
     def sum_periods(self):
-        td = date.today()
-        today_zero = datetime(td.year, td.month, td.day)
-        cnt = self.periode_set.filter(models.Q(end__lt=today_zero)).aggregate(sum=models.Sum("duration"))['sum']
-        if cnt:
-            return cnt
-        else:
-            return 0
+       return self.periode_set.filter(end__lt=timezone.now()).aggregate(somme=models.Sum('duration'))['somme'] 
+#        td = date.today()
+#        today_zero = datetime(td.year, td.month, td.day)
+#        cnt = self.periode_set.filter(models.Q(end__lt=today_zero)).aggregate(sum=models.Sum("duration"))['sum']
+#        if cnt:
+#            return cnt
+#        else:
+#            return 0
     sum_periods.short_description = "Périodes prestées "
 
     def clean(self):
@@ -200,8 +202,8 @@ class Periode(models.Model):
         period_date_start = date(self.start.year, self.start.month, self.start.day)
         period_date_end = date(self.end.year, self.end.month, self.end.day)
 
-        if (period_date_start < date.today()):
-            raise ValidationError("Vous ne pouvez pas encoder dans le passé !")
+        if (period_date_start <= date.today()):
+            raise ValidationError("Enoodage tardif pour cette plage horaire")
 
         if (period_date_start < self.convention.date_start):
             raise ValidationError("La plage débute avant le début la convention")

@@ -1,7 +1,7 @@
 from datetime import date, datetime, timedelta
 from django.utils import timezone
 
-from django.shortcuts import render
+from django.shortcuts import render, redirect
 from django.http import HttpResponse, HttpResponseRedirect, JsonResponse
 from django.contrib.auth.decorators import login_required
 from django.contrib.auth.models import Group
@@ -17,7 +17,10 @@ def accueil(request):
     context = {
     "is_teacher": Group.objects.get(name="Professeurs") in request.user.groups.all(),
     }
-    return render(request, "accueil.html", context=context)
+    if request.user.is_staff:
+        return redirect('/admin/')
+    else:
+        return render(request, "accueil.html", context=context)
 
 @login_required(login_url="/calendar_login/")
 def horaires(request):
