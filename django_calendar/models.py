@@ -1,5 +1,5 @@
 from datetime import date
-from datetime import datetime
+from datetime import datetime, timedelta
 
 from django.db import models
 from django.contrib.auth.models import User, Group
@@ -187,7 +187,12 @@ class Periode(models.Model):
     duration = models.DecimalField("Durée en périodes", max_digits=8, decimal_places=2, default=0)
 
     def modified(self):
-        return self.date_created < self.date_modified
+        print("Date création : %s" % (self.date_created))
+        print("Date modification : %s" % (self.date_modified))
+        if self.date_created and self.date_modified:
+            return self.date_created + timedelta(minutes=1) < self.date_modified
+        else:
+            return False
     modified.boolean = True
     modified.short_description = "A été modifié"
 
